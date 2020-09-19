@@ -1,0 +1,102 @@
+version: '3.7'
+
+volumes:
+  kong_data: {}
+
+networks:
+  kong-net:
+    external: false
+
+services:
+  kong-migrations:
+    image: "${KONG_DOCKER_TAG:-kong:latest}"
+    command: kong migrations bootstrap
+    environment:
+      KONG_DATABASE: postgres
+      KONG_PG_DATABASE: YOUR_EXTERNAL_DB_NAME
+      KONG_PG_HOST: YOUR_EXTERNAL_PG_HOST
+      KONG_PG_USER: YOUR_EXTERNAL_DB_USER_NAME
+      KONG_PG_PASSWORD_FILE: /run/secrets/kong_postgres_password
+    secrets:
+      - kong_postgres_password
+    networks:
+      - kong-net
+    restart: on-failure
+    deploy:
+      restart_policy:
+        condition: on-failure
+  kong-migrations-up:
+    image: "${KONG_DOCKER_TAG:-kong:latest}"
+    command: kong migrations up && kong migrations finish
+    environment:
+      KONG_DATABASE: postgres
+      KONG_PG_DATABASE: YOUR_EXTERNAL_DB_NAME
+      KONG_PG_HOST: YOUR_EXTERNAL_PG_HOST
+      KONG_PG_USER: YOUR_EXTERNAL_DB_USER_NAME
+      KONG_PG_PASSWORD_FILE: /run/secrets/kong_postgres_password
+    secrets:
+      - kong_postgres_password
+    networks:
+      - kong-net
+    restart: on-failure
+    deploy:
+      restart_policy:
+        condition: on-failure
+  kong:
+    image: "${KONG_DOCKER_TAG:-kong:latest}"
+    user: "${KONG_USER:-kong}"
+    environment:
+      KONG_ADMIN_ACCESS_LOG: /dev/stdout
+      KONG_ADMIN_ERROR_LOG: /dev/stderr
+      KONG_ADMIN_LISTEN: '0.0.0.0:8001'
+      KONG_DATABASE: postgres
+      KONG_PG_DATABASE: YOUR_EXTERNAL_DB_NAME
+      KONG_PG_HOST: YOUR_EXTERNAL_PG_HOST
+      KONG_PG_USER: YOUR_EXTERNAL_DB_USER_NAME
+      KONG_PG_PASSWORD_FILE: /run/secrets/kong_postgres_password
+      KONG_PROXY_ACCESS_LOG: /dev/stdout
+      KONG_PROXY_ERROR_LOG: /dev/stderr
+    secrets:
+      - kong_postgres_password
+    networks:
+      - kong-net
+    ports:
+      - "8080:8000/tcp"
+      - "8887:8001/tcp"
+      - "8886:8443/tcp"
+      - "8885:8444/tcp"
+    healthcheck:
+      test: ["CMD", "kong", "health"]
+      interval: 10s
+      timeout: 10s
+      retries: 10
+    restart: on-failure
+    deploy:
+      restart_policy:
+        condition: on-failure
+  konga:
+    image: pantsel/konga
+    environment:
+      TOKEN_SECRET: "some-secret-token"
+      DB_ADAPTER: postgres
+      DB_HOST: ${KONG_PG_HOST}
+      DB_PORT: YOUR_EXTERNAL_DB_PORT
+      DB_DATABASE: ${KONG_PG_DATABASE}
+      DB_USER: ${KONG_PG_USER}
+      DB_PASSWORD: YOUR_EXTERNAL_DB_PASSWORD
+      NODE_ENV: "development"
+      KONGA_HOOK_TIMEOUT: 10000
+    restart: on-failure
+    volumes:
+      - /var/data/konga:/app/kongadata
+    ports:
+      - 8889:1337
+    depends_on:
+      - kong-migrations-up
+    networks:
+      - kong-net
+
+secrets:
+  kong_postgres_password:
+    file: ./POSTGRES_PASSWORD
+
