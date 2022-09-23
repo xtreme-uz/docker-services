@@ -1,0 +1,44 @@
+version: '3.9'
+
+volumes:
+  postgres_data:
+    driver: local
+
+services:
+  database:
+    image: postgres:10
+    container_name: keycloak-postgres
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    environment:
+      - POSTGRES_DB=keycloak_db
+      - POSTGRES_USER=keycloak_user
+      - POSTGRES_PASSWORD=password
+    healthcheck:
+      test: ["CMD", "pg_isready", "-U", "keycloak_user", "-d", "keycloak_db"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+  keycloak:
+    build:
+      context: .
+    container_name: custom-keycloak
+    environment:
+      - KC_DB=postgres
+      - KC_DB_URL_HOST=database
+      - KC_DB_URL_PORT=5432
+      - KC_DB_URL_DATABASE=keycloak_db
+      - KC_DB_USERNAME=keycloak_user
+      - KC_DB_PASSWORD=password
+      - KEYCLOAK_ADMIN=admin
+      - KEYCLOAK_ADMIN_PASSWORD=change_me
+    ports:
+      - "8080:8080"
+      - "8443:8443"
+    depends_on:
+      database:
+        condition: service_healthy
+    command:
+      - start-dev
