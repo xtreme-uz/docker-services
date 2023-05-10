@@ -1,0 +1,22 @@
+version: '3.8'
+
+services:
+  activemq:
+    image: symptoma/activemq:latest
+    container_name: 'activemq'
+    ports:
+      - '61616:61616'
+      - '8161:8161'
+    environment:
+      - ACTIVEMQ_USERNAME=test
+      - ACTIVEMQ_PASSWORD=secret
+      - ACTIVEMQ_WEBADMIN_USERNAME=admin
+      - ACTIVEMQ_WEBADMIN_PASSWORD=admin
+      - ACTIVEMQ_ENABLE_SCHEDULER=true
+    volumes:
+      - activemq_data:/data/activemq:delegated
+      - activemq_log:/var/log/activemq:delegated
+
+volumes:
+  activemq_data:
+  activemq_log:
