@@ -1,0 +1,44 @@
+HELP.md
+target/
+!.mvn/wrapper/maven-wrapper.jar
+!**/src/main/**
+!**/src/test/**
+
+### STS ###
+.apt_generated
+.classpath
+.factorypath
+.project
+.settings
+.springBeans
+.sts4-cache
+
+### IntelliJ IDEA ###
+*.iws
+*.iml
+*.ipr
+.idea/
+
+### NetBeans ###
+/nbproject/private/
+/nbbuild/
+/dist/
+/nbdist/
+/.nb-gradle/
+build/
+
+### VS Code ###
+.vscode/
+/src/main/java/META-INF/sun-jaxb.episode
+
+### Log ###
+logs/*
+*.log
+/.idea/
+/uploads/
+
+### prop ###
+application-loc.properties
+/src/main/resources/application-local.yml
+/docker-compose.yml
+maven-wrapper.jar

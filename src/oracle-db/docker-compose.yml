@@ -1,0 +1,17 @@
+version: '3.8'
+
+services:
+
+  oracle-db:
+    image: gvenzl/oracle-xe:21
+    container_name: oracle-db
+    ports:
+      - "1521:1521"
+    environment:
+      - ORACLE_PASSWORD=oracle
+    volumes:
+      - ./init-db:/container-entrypoint-initdb.d
+      - oracle_db_data:/opt/oracle/oradata:delegated
+
+volumes:
+  oracle_db_data:
