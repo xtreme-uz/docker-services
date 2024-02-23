@@ -22,3 +22,8 @@
          - start
          - --optimized
        ```
+
+## Sentry
+[sentry docs](https://develop.sentry.dev/self-hosted/)
+
+[installation instruction](src/sentry/install.md)
